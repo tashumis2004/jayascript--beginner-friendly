@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calculator</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --panel: #111827;
+        --screen: #1e293b;
+        --button: #334155;
+        --button-operator: #f59e0b;
+        --button-equal: #22c55e;
+        --text: #f8fafc;
+        --muted: #cbd5e1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #020617, #111827 50%, #0f172a);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .calculator {
+        width: min(90vw, 360px);
+        background: var(--panel);
+        border-radius: 24px;
+        padding: 20px;
+        box-shadow: 0 30px 60px rgba(2, 6, 23, 0.7);
+        border: 1px solid rgba(148, 163, 184, 0.15);
+      }
+
+      .display {
+        width: 100%;
+        min-height: 90px;
+        background: var(--screen);
+        border-radius: 14px;
+        padding: 18px 16px;
+        margin-bottom: 18px;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        font-size: clamp(2rem, 5vw, 2.8rem);
+        font-weight: 700;
+        overflow: hidden;
+        word-break: break-all;
+        box-shadow: inset 0 0 18px rgba(15, 23, 42, 0.8);
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+
+      button {
+        border: none;
+        border-radius: 14px;
+        min-height: 62px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s ease, opacity 0.2s ease;
+        color: var(--text);
+        background: var(--button);
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        opacity: 0.96;
+      }
+
+      .operator {
+        background: var(--button-operator);
+        color: #111827;
+      }
+
+      .equal {
+        background: var(--button-equal);
+        color: #062b1c;
+      }
+
+      .wide {
+        grid-column: span 2;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="calculator">
+      <div id="display" class="display">0</div>
+      <div class="buttons">
+        <button class="operator" data-value="AC">AC</button>
+        <button class="operator" data-value="DEL">DEL</button>
+        <button class="operator" data-value="%">%</button>
+        <button class="operator" data-value="/">÷</button>
+
+        <button data-value="7">7</button>
+        <button data-value="8">8</button>
+        <button data-value="9">9</button>
+        <button class="operator" data-value="*">×</button>
+
+        <button data-value="4">4</button>
+        <button data-value="5">5</button>
+        <button data-value="6">6</button>
+        <button class="operator" data-value="-">−</button>
+
+        <button data-value="1">1</button>
+        <button data-value="2">2</button>
+        <button data-value="3">3</button>
+        <button class="operator" data-value="+">+</button>
+
+        <button class="wide" data-value="0">0</button>
+        <button data-value=".">.</button>
+        <button class="equal" data-value="=">=</button>
+      </div>
+    </div>
+
+    <script>
+      const display = document.getElementById('display');
+      const buttons = document.querySelectorAll('button');
+      let currentValue = '0';
+      let storedValue = null;
+      let pendingOperator = null;
+
+      function updateDisplay() {
+        display.textContent = currentValue;
+      }
+
+      function clearAll() {
+        currentValue = '0';
+        storedValue = null;
+        pendingOperator = null;
+        updateDisplay();
+      }
+
+      function deleteLast() {
+        if (currentValue.length <= 1 || (currentValue.length === 2 && currentValue.startsWith('-'))) {
+          currentValue = '0';
+        } else {
+          currentValue = currentValue.slice(0, -1);
+        }
+        updateDisplay();
+      }
+
+      function appendValue(value) {
+        if (value === '.' && currentValue.includes('.')) return;
+        if (currentValue === '0' && value !== '.') {
+          currentValue = value;
+        } else {
+          currentValue += value;
+        }
+        updateDisplay();
+      }
+
+      function compute(a, b, operator) {
+        switch (operator) {
+          case '+':
+            return a + b;
+          case '-':
+            return a - b;
+          case '*':
+            return a * b;
+          case '/':
+            return b === 0 ? 'Error' : a / b;
+          case '%':
+            return (a * b) / 100;
+          default:
+            return b;
+        }
+      }
+
+      function performOperation(operator) {
+        const value = Number(currentValue);
+
+        if (storedValue === null) {
+          storedValue = value;
+        } else if (pendingOperator) {
+          const result = compute(storedValue, value, pendingOperator);
+          currentValue = String(result);
+          storedValue = result;
+        }
+
+        pendingOperator = operator;
+        currentValue = '0';
+        updateDisplay();
+      }
+
+      function evaluate() {
+        if (storedValue === null || pendingOperator === null) return;
+
+        const value = Number(currentValue);
+        const result = compute(storedValue, value, pendingOperator);
+        currentValue = String(result);
+        storedValue = null;
+        pendingOperator = null;
+        updateDisplay();
+      }
+
+      buttons.forEach((button) => {
+        button.addEventListener('click', () => {
+          const value = button.dataset.value;
+
+          if (!isNaN(value) || value === '.') {
+            appendValue(value);
+            return;
+          }
+
+          switch (value) {
+            case 'AC':
+              clearAll();
+              break;
+            case 'DEL':
+              deleteLast();
+              break;
+            case '=':
+              evaluate();
+              break;
+            default:
+              performOperation(value);
+          }
+        });
+      });
+
+      updateDisplay();
+    </script>
+  </body>
+</html>
