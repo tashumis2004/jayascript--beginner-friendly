@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Color Picker</title>
+    <style>
+      :root {
+        --bg1: #020617;
+        --bg2: #111827;
+        --card: rgba(15, 23, 42, 0.78);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --accent: #38bdf8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, var(--bg1), var(--bg2));
+        color: var(--text);
+      }
+
+      .picker-card {
+        width: min(90vw, 520px);
+        background: var(--card);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        border-radius: 24px;
+        padding: 28px 24px;
+        box-shadow: 0 30px 60px rgba(2, 6, 23, 0.55);
+        backdrop-filter: blur(8px);
+      }
+
+      h1 {
+        margin: 0 0 22px;
+        text-align: center;
+        color: var(--accent);
+      }
+
+      .picker-area {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr;
+        gap: 24px;
+        align-items: center;
+      }
+
+      .color-preview {
+        width: 100%;
+        height: 220px;
+        border-radius: 18px;
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        background: #ff0000;
+        box-shadow: inset 0 0 30px rgba(255, 255, 255, 0.08);
+      }
+
+      .controls {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .control {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      label {
+        font-size: 0.95rem;
+        color: var(--muted);
+      }
+
+      input[type="range"] {
+        width: 100%;
+        accent-color: var(--accent);
+      }
+
+      .color-box {
+        background: rgba(15, 23, 42, 0.9);
+        border-radius: 12px;
+        padding: 14px 16px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        font-size: 1.1rem;
+        letter-spacing: 0.08em;
+        text-align: center;
+      }
+
+      @media (max-width: 560px) {
+        .picker-area {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="picker-card">
+      <h1>Color Picker</h1>
+
+      <div class="picker-area">
+        <div id="colorPreview" class="color-preview"></div>
+
+        <div class="controls">
+          <div class="control">
+            <label for="red">Red</label>
+            <input id="red" type="range" min="0" max="255" value="255" />
+          </div>
+
+          <div class="control">
+            <label for="green">Green</label>
+            <input id="green" type="range" min="0" max="255" value="0" />
+          </div>
+
+          <div class="control">
+            <label for="blue">Blue</label>
+            <input id="blue" type="range" min="0" max="255" value="0" />
+          </div>
+
+          <div id="colorCode" class="color-box">#FF0000</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const redInput = document.getElementById('red');
+      const greenInput = document.getElementById('green');
+      const blueInput = document.getElementById('blue');
+      const colorPreview = document.getElementById('colorPreview');
+      const colorCode = document.getElementById('colorCode');
+
+      function updateColor() {
+        const red = redInput.value;
+        const green = greenInput.value;
+        const blue = blueInput.value;
+
+        const rgb = `rgb(${red}, ${green}, ${blue})`;
+        const hex = `#${Number(red).toString(16).padStart(2, '0')}${Number(green).toString(16).padStart(2, '0')}${Number(blue).toString(16).padStart(2, '0')}`.toUpperCase();
+
+        colorPreview.style.background = rgb;
+        colorCode.textContent = hex;
+      }
+
+      [redInput, greenInput, blueInput].forEach((input) => {
+        input.addEventListener('input', updateColor);
+      });
+
+      updateColor();
+    </script>
+  </body>
+</html>
