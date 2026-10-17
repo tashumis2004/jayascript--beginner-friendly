@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stopwatch & Timer</title>
+    <style>
+      :root {
+        --bg1: #020617;
+        --bg2: #111827;
+        --card: rgba(15, 23, 42, 0.8);
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --primary: #38bdf8;
+        --success: #22c55e;
+        --danger: #ef4444;
+        --warning: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, var(--bg1), var(--bg2));
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .app {
+        width: min(92vw, 720px);
+        background: var(--card);
+        border-radius: 26px;
+        padding: 28px 22px;
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        box-shadow: 0 30px 60px rgba(2, 6, 23, 0.55);
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 24px;
+      }
+
+      .header h1 {
+        margin: 0;
+        color: var(--primary);
+        font-size: clamp(2rem, 5vw, 2.8rem);
+      }
+
+      .sections {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 22px;
+      }
+
+      .panel {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 18px;
+        padding: 22px 18px;
+      }
+
+      .panel h2 {
+        margin: 0 0 16px;
+        text-align: center;
+        color: var(--warning);
+      }
+
+      .time-display {
+        font-size: clamp(2rem, 6vw, 3.6rem);
+        font-weight: 700;
+        text-align: center;
+        letter-spacing: 0.08em;
+        margin-bottom: 16px;
+        color: var(--text);
+      }
+
+      .timer-input {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+
+      .timer-input input {
+        width: 100%;
+        padding: 10px 8px;
+        text-align: center;
+        font-size: 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        background: rgba(2, 6, 23, 0.8);
+        color: var(--text);
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        padding: 11px 16px;
+        transition: transform 0.15s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .start {
+        background: var(--success);
+        color: #052e16;
+      }
+
+      .pause {
+        background: var(--warning);
+        color: #1f2937;
+      }
+
+      .reset {
+        background: var(--danger);
+        color: #fff;
+      }
+
+      @media (max-width: 660px) {
+        .sections {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <div class="header">
+        <h1>Stopwatch & Timer</h1>
+      </div>
+
+      <div class="sections">
+        <div class="panel">
+          <h2>Stopwatch</h2>
+          <div id="stopwatchDisplay" class="time-display">00:00:00</div>
+          <div class="controls">
+            <button class="start" id="stopwatchStart">Start</button>
+            <button class="pause" id="stopwatchPause">Pause</button>
+            <button class="reset" id="stopwatchReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Timer</h2>
+          <div id="timerDisplay" class="time-display">00:00:00</div>
+          <div class="timer-input">
+            <input id="hours" type="number" min="0" max="99" value="0" placeholder="HH" />
+            <input id="minutes" type="number" min="0" max="59" value="1" placeholder="MM" />
+            <input id="seconds" type="number" min="0" max="59" value="0" placeholder="SS" />
+          </div>
+          <div class="controls">
+            <button class="start" id="timerStart">Start</button>
+            <button class="pause" id="timerPause">Pause</button>
+            <button class="reset" id="timerReset">Reset</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const stopwatchDisplay = document.getElementById('stopwatchDisplay');
+      const stopwatchStartBtn = document.getElementById('stopwatchStart');
+      const stopwatchPauseBtn = document.getElementById('stopwatchPause');
+      const stopwatchResetBtn = document.getElementById('stopwatchReset');
+
+      const timerDisplay = document.getElementById('timerDisplay');
+      const hoursInput = document.getElementById('hours');
+      const minutesInput = document.getElementById('minutes');
+      const secondsInput = document.getElementById('seconds');
+      const timerStartBtn = document.getElementById('timerStart');
+      const timerPauseBtn = document.getElementById('timerPause');
+      const timerResetBtn = document.getElementById('timerReset');
+
+      let stopwatchInterval = null;
+      let stopwatchMilliseconds = 0;
+
+      let timerInterval = null;
+      let timerRemaining = 0;
+
+      function formatTime(totalSeconds) {
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        return [hours, minutes, seconds]
+          .map((value) => String(value).padStart(2, '0'))
+          .join(':');
+      }
+
+      function updateStopwatch() {
+        stopwatchMilliseconds += 1;
+        const totalSeconds = Math.floor(stopwatchMilliseconds / 10);
+        stopwatchDisplay.textContent = formatTime(totalSeconds);
+      }
+
+      stopwatchStartBtn.addEventListener('click', () => {
+        if (stopwatchInterval) return;
+        stopwatchInterval = setInterval(updateStopwatch, 100);
+      });
+
+      stopwatchPauseBtn.addEventListener('click', () => {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+      });
+
+      stopwatchResetBtn.addEventListener('click', () => {
+        clearInterval(stopwatchInterval);
+        stopwatchInterval = null;
+        stopwatchMilliseconds = 0;
+        stopwatchDisplay.textContent = '00:00:00';
+      });
+
+      function updateTimerDisplay() {
+        timerDisplay.textContent = formatTime(timerRemaining);
+      }
+
+      function getTimerInputSeconds() {
+        const hours = Number(hoursInput.value) || 0;
+        const minutes = Number(minutesInput.value) || 0;
+        const seconds = Number(secondsInput.value) || 0;
+        return hours * 3600 + minutes * 60 + seconds;
+      }
+
+      function setTimerFromInputs() {
+        timerRemaining = getTimerInputSeconds();
+        updateTimerDisplay();
+      }
+
+      timerStartBtn.addEventListener('click', () => {
+        if (timerRemaining <= 0) {
+          timerRemaining = getTimerInputSeconds();
+        }
+
+        if (timerInterval) return;
+
+        timerInterval = setInterval(() => {
+          if (timerRemaining <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            alert('Timer finished!');
+            return;
+          }
+
+          timerRemaining -= 1;
+          updateTimerDisplay();
+        }, 1000);
+      });
+
+      timerPauseBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      });
+
+      timerResetBtn.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        timerRemaining = getTimerInputSeconds();
+        updateTimerDisplay();
+      });
+
+      [hoursInput, minutesInput, secondsInput].forEach((input) => {
+        input.addEventListener('input', () => {
+          const value = Number(input.value) || 0;
+          input.value = Math.max(0, Math.min(value, input.id === 'hours' ? 99 : 59));
+          setTimerFromInputs();
+        });
+      });
+
+      setTimerFromInputs();
+    </script>
+  </body>
+</html>
