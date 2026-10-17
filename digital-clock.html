@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Digital Clock</title>
+    <style>
+      :root {
+        --bg: #0b1020;
+        --panel: rgba(15, 23, 42, 0.75);
+        --glow: #67e8f9;
+        --text: #e2f3ff;
+        --muted: #9fbad0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background:
+          radial-gradient(circle at top, rgba(103, 232, 249, 0.18), transparent 30%),
+          linear-gradient(135deg, #020617 0%, #111827 45%, #0f172a 100%);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .clock-card {
+        width: min(90vw, 620px);
+        background: var(--panel);
+        border: 1px solid rgba(103, 232, 249, 0.2);
+        border-radius: 26px;
+        padding: 32px 28px;
+        box-shadow: 0 30px 60px rgba(2, 6, 23, 0.7), 0 0 30px rgba(103, 232, 249, 0.14);
+        backdrop-filter: blur(10px);
+      }
+
+      .date {
+        text-align: center;
+        font-size: clamp(0.9rem, 2vw, 1.1rem);
+        letter-spacing: 0.28rem;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 18px;
+      }
+
+      .time {
+        display: flex;
+        align-items: baseline;
+        justify-content: center;
+        gap: 14px;
+        font-size: clamp(3rem, 9vw, 7.5rem);
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-shadow: 0 0 18px rgba(103, 232, 249, 0.7);
+        color: var(--glow);
+      }
+
+      .seconds {
+        font-size: clamp(1.2rem, 3vw, 2.2rem);
+        letter-spacing: 0.08em;
+        opacity: 0.9;
+      }
+
+      .ampm {
+        font-size: clamp(0.8rem, 2vw, 1rem);
+        letter-spacing: 0.2em;
+        margin-left: 6px;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="clock-card">
+      <div id="date" class="date">Loading...</div>
+      <div class="time" aria-live="polite">
+        <span id="hours">00</span>
+        <span>:</span>
+        <span id="minutes">00</span>
+        <span class="seconds">:<span id="seconds">00</span></span>
+        <span id="ampm" class="ampm">AM</span>
+      </div>
+    </div>
+
+    <script>
+      const dateEl = document.getElementById('date');
+      const hoursEl = document.getElementById('hours');
+      const minutesEl = document.getElementById('minutes');
+      const secondsEl = document.getElementById('seconds');
+      const ampmEl = document.getElementById('ampm');
+
+      function updateClock() {
+        const now = new Date();
+        let hours = now.getHours();
+        const minutes = now.getMinutes();
+        const seconds = now.getSeconds();
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+
+        hours = hours % 12 || 12;
+
+        dateEl.textContent = now.toLocaleDateString(undefined, {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric'
+        });
+
+        hoursEl.textContent = String(hours).padStart(2, '0');
+        minutesEl.textContent = String(minutes).padStart(2, '0');
+        secondsEl.textContent = String(seconds).padStart(2, '0');
+        ampmEl.textContent = ampm;
+      }
+
+      updateClock();
+      setInterval(updateClock, 1000);
+    </script>
+  </body>
+</html>
