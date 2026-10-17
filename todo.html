@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>To-Do List</title>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: rgba(15, 23, 42, 0.8);
+        --primary: #38bdf8;
+        --primary-dark: #0ea5e9;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --danger: #ef4444;
+        --success: #22c55e;
+        --shadow: rgba(15, 23, 42, 0.5);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #020617, #111827 45%, #0f172a);
+        color: var(--text);
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .todo-app {
+        width: min(92vw, 520px);
+        background: var(--card);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 22px;
+        box-shadow: 0 25px 60px var(--shadow);
+        padding: 28px 22px;
+        backdrop-filter: blur(8px);
+      }
+
+      h1 {
+        text-align: center;
+        margin: 0 0 22px;
+        font-size: clamp(2rem, 6vw, 2.5rem);
+        color: var(--primary);
+      }
+
+      .input-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 22px;
+      }
+
+      input {
+        flex: 1;
+        border: none;
+        border-radius: 12px;
+        padding: 14px 16px;
+        font-size: 1rem;
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+      }
+
+      input:focus {
+        outline: 2px solid rgba(56, 189, 248, 0.6);
+        outline-offset: 1px;
+      }
+
+      button {
+        border: none;
+        border-radius: 12px;
+        padding: 14px 18px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.2s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .add-btn {
+        background: var(--primary);
+        color: #082f49;
+      }
+
+      .task-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        border-radius: 12px;
+        padding: 12px 14px;
+        gap: 12px;
+      }
+
+      .task-main {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1;
+      }
+
+      .task-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--success);
+        cursor: pointer;
+      }
+
+      .task-text {
+        flex: 1;
+        word-break: break-word;
+      }
+
+      .task-item.completed .task-text {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
+      .delete-btn {
+        background: rgba(239, 68, 68, 0.12);
+        color: #fecaca;
+        padding: 8px 12px;
+      }
+
+      .empty {
+        text-align: center;
+        color: var(--muted);
+        padding: 18px 10px;
+        border: 1px dashed rgba(148, 163, 184, 0.3);
+        border-radius: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="todo-app">
+      <h1>To-Do List</h1>
+
+      <div class="input-row">
+        <input id="taskInput" type="text" placeholder="Add a new task..." />
+        <button class="add-btn" id="addTaskBtn">Add</button>
+      </div>
+
+      <ul id="taskList" class="task-list"></ul>
+    </div>
+
+    <script>
+      const taskInput = document.getElementById('taskInput');
+      const addTaskBtn = document.getElementById('addTaskBtn');
+      const taskList = document.getElementById('taskList');
+
+      let tasks = JSON.parse(localStorage.getItem('todoTasks')) || [];
+
+      function saveTasks() {
+        localStorage.setItem('todoTasks', JSON.stringify(tasks));
+      }
+
+      function renderTasks() {
+        taskList.innerHTML = '';
+
+        if (tasks.length === 0) {
+          const empty = document.createElement('li');
+          empty.className = 'empty';
+          empty.textContent = 'No tasks yet. Add one above!';
+          taskList.appendChild(empty);
+          return;
+        }
+
+        tasks.forEach((task) => {
+          const item = document.createElement('li');
+          item.className = 'task-item' + (task.completed ? ' completed' : '');
+
+          const main = document.createElement('div');
+          main.className = 'task-main';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.checked = task.completed;
+          checkbox.addEventListener('change', () => {
+            task.completed = checkbox.checked;
+            saveTasks();
+            renderTasks();
+          });
+
+          const text = document.createElement('span');
+          text.className = 'task-text';
+          text.textContent = task.text;
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.className = 'delete-btn';
+          deleteBtn.textContent = 'Delete';
+          deleteBtn.addEventListener('click', () => {
+            tasks = tasks.filter((t) => t.id !== task.id);
+            saveTasks();
+            renderTasks();
+          });
+
+          main.appendChild(checkbox);
+          main.appendChild(text);
+          item.appendChild(main);
+          item.appendChild(deleteBtn);
+          taskList.appendChild(item);
+        });
+      }
+
+      function addTask() {
+        const text = taskInput.value.trim();
+        if (!text) {
+          taskInput.focus();
+          return;
+        }
+
+        tasks.unshift({
+          id: Date.now(),
+          text,
+          completed: false
+        });
+
+        saveTasks();
+        renderTasks();
+        taskInput.value = '';
+        taskInput.focus();
+      }
+
+      addTaskBtn.addEventListener('click', addTask);
+
+      taskInput.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+          addTask();
+        }
+      });
+
+      renderTasks();
+    </script>
+  </body>
+</html>
